@@ -31,6 +31,7 @@ class Slash(commands.Cog):
         event = {
             "activity": activity,
             "duration": duration,
+            "discgrp": ctx.channel_id
         }
         await supabaseinteraction.send_event(event)
         await ctx.response.send_message(str(ctx.author.id))
