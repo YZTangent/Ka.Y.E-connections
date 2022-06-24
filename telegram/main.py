@@ -1,87 +1,145 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# This program is dedicated to the public domain under the CC0 license.
-
-"""
-From https://www.codementor.io/@karandeepbatra/part-1-how-to-create-a-telegram-bot-in-python-in-under-10-minutes-19yfdv4wrq
-Simple Bot to reply to Telegram messages.
-
-First, a few handler functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-Basic Echobot example, repeats messages.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
-
 import logging
-import os
-from dotenv import load_dotenv
-
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-
-load_dotenv()
-TOKEN = os.getenv('TG_TOKEN')
+import sys
+sys.path.append('.')
+from connection import supabaseinteraction as supa
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Chat
+import asyncio
+from typing import List, Tuple, cast
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    InvalidCallbackData,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
 
 # Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 logger = logging.getLogger(__name__)
 
 
-# Define a few command handlers. These usually take the two arguments update and
-# context. Error handlers also receive the raised TelegramError object in error.
-def start(update, context):
-    """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
+"""
+-------------------------------------------- Private or Group checker --------------------------------------------------
+"""
+def privcheck(privatefunc, groupfunc):
+    async def inner(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if update.message.chat.type == 'private':
+            await privatefunc(update, context)
+        else:
+            await groupfunc(update, context)
+    return inner
 
 
-def help(update, context):
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
+"""
+-------------------------------------------- Element builders ----------------------------------------------------------
+"""
+def build_keyboard(current_list) -> InlineKeyboardMarkup:
+    events = supa.get_event().data
+    return InlineKeyboardMarkup.from_column(
+        [InlineKeyboardButton(i['activity'], callback_data=("events", i)) for i in events]
+    )
 
 
-def echo(update, context):
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
+def build_event_list(update: Update) -> InlineKeyboardMarkup:
+    # events = supa.get_user_event(update['from']['id']).data
+    events = supa.get_all_events().data
+    keyboard = InlineKeyboardMarkup.from_column(
+        [InlineKeyboardButton(i['activity'], callback_data=("events", i)) for i in events]
+    )
+    text = "Please select your event!"
+    return text, keyboard
 
 
-def error(update, context):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
+def build_rsvp_message(update: Update) -> InlineKeyboardMarkup:
+    events = supa.get_event().data
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("Yes", callback_data=("rsvp", True))],
+        [InlineKeyboardButton("No", callback_data=("events", False))],
+    ])
+
+
+"""
+-------------------------------------------- Handlers ------------------------------------------------------------------
+"""
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Sends a message with 5 inline buttons attached."""
+    print(update)
+    if update.message.chat.type == 'private':
+        await update.message.reply_text("cringe")
+    else:
+        text, keyboard = build_event_list(update)
+        await update.message.reply_text(text, reply_markup=keyboard)
+
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Displays info on how to use the bot."""
+    await update.message.reply_text(
+        "Use /start to test this bot. Use /clear to clear the stored data so that you can see "
+        "what happens, if the button data is not available. "
+    )
+
+
+async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Clears the callback data cache"""
+    context.bot.callback_data_cache.clear_callback_data()
+    context.bot.callback_data_cache.clear_callback_queries()
+    await update.effective_message.reply_text("All clear!")
+
+
+async def list_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
+    await query.answer()
+    # Get the data from the callback_data.
+    # If you're using a type checker like MyPy, you'll have to use typing.cast
+    # to make the checker get the expected type of the callback_data
+    number, number_list = cast(Tuple[int, List[int]], query.data)
+    # append the number to the list
+    number_list.append(number)
+
+    await query.edit_message_text(
+        text=f"So far you've selected {number_list}. Choose the next item:",
+        reply_markup=build_keyboard(number_list),
+    )
+
+    # we can delete the data stored for the query, because we've replaced the buttons
+    context.drop_callback_data(query)
+
+
+async def handle_invalid_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Informs the user that the button is no longer available."""
+    await update.callback_query.answer()
+    await update.effective_message.edit_text(
+        "Sorry, I could not process this button click 😕 Please send /start to get a new keyboard."
+    )
 
 
 def main():
-    """Start the bot."""
-    # Create the Updater and pass it your bot's token.
-    # Make sure to set use_context=True to use the new context based callbacks
-    # Post version 12 this will no longer be necessary
-    updater = Updater(TOKEN, use_context=True)
+    """Run the bot."""
+    # Create the Application and pass it the bot's token.
+    application = (
+        Application.builder()
+        .token("5357075423:AAFij_e9Y_KxGvHfpHiJ-2znH9Cuo4Lf-xg")
+        .arbitrary_callback_data(True)
+        .build()
+    )
 
-    # Get the dispatcher to register handlers
-    dp = updater.dispatcher
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("clear", clear))
+    application.add_handler(
+        CallbackQueryHandler(handle_invalid_button, pattern=InvalidCallbackData)
+    )
+    application.add_handler(CallbackQueryHandler(list_button))
 
-    # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help))
-
-    # on noncommand i.e message - echo the message on Telegram
-    dp.add_handler(MessageHandler(Filters.text, echo))
-
-    # log all errors
-    dp.add_error_handler(error)
-
-    # Start the Bot
-    updater.start_polling()
-
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
-    updater.idle()
+    # Run the bot
+    application.run_polling()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

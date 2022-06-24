@@ -1,14 +1,56 @@
-import disnake
-from disnake.ext import commands
 from dotenv import load_dotenv
-# from interactions import SlashCommand
 import os
 from supabase import create_client, Client
 
-
+load_dotenv()
 SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
 
 async def send_event(event: dict):
     supabase.table("event").insert(event).execute()
+
+
+def get_user_uuid(**kwargs):
+    # Given discord or telegram userID, returns the user uuid.
+    # Only takes either TeleID or DiscID, and chooses discord ID over Telegram ID if both are given.
+
+    # Pythonic way
+    for arg in kwargs:
+        if arg in ["DiscID", "TeleID"]:
+            return supabase.table("Profile").select("id").eq(arg, kwargs[arg]).execute().data[0]['id']
+
+    #Trivial way
+    # if "TeleID" in kwargs and "DiscID" in kwargs:
+    #     raise Exception("Provide only one of either Telegram ID or Discord ID!")
+    # elif "TeleID" in kwargs:
+    #     return supabase.table("Profile").select("id").eq("TeleID", kwargs["TeleID"]).execute().data[0]['id']
+    # elif "DiscID" in kwargs:
+    #     return supabase.table("Profile").select("id").eq("DiscID", kwargs["DiscID"]).execute().data[0]['id']
+    # else:
+    #     raise Exception("Please provide a Telegram or Discord kwargs as argument!")
+
+
+def get_all_events():
+    return supabase.table("event").select("*").execute()
+
+
+def get_user_events(profileid):
+    # for arg in kwargs:
+    #     if arg == "ProfileID":
+    #         return supabase.table("event").select("*").eq("creatorID", kwargs["ProfileID"]).execute().data
+    #     elif arg in ["TeleID", "DiscID"]:
+    #         return get_user_events(ProfileID=get_user_uuid(arg=kwargs[arg]))
+    return supabase.table("event").select("*").eq("creatorID", profileid).execute().data
+
+def get_teleuser_events(TeleID):
+    return get_user_events(get_user_uuid(TeleID=TeleID))
+
+
+def get_discuser_events(DiscID):
+    return get_user_events(get_user_uuid(DiscID=DiscID))
+
+if __name__ == "__main__":
+    print(get_user_uuid(DiscID=123))
+    print(get_discuser_events(123))
