@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 # from interactions import SlashCommand
 import os
 from supabase import create_client, Client
+import sys
+sys.path.append('..')
+from connection import supabaseinteraction
 
 # load credentials
 load_dotenv()
@@ -33,6 +36,26 @@ async def on_message(message):
     if type(message.channel) == disnake.channel.DMChannel:
         if message.content == "ping":
             await message.reply("pong")
+
+@bot.event
+async def on_guild_scheduled_event_subscribe(event, user):
+    sbid = await supabaseinteraction.get_user_uuid(DiscID = user.id)
+    rsvpinfo = {
+        "userID": sbid,
+        "eventID": event.description,
+        "avail": True
+    }
+    await supabaseinteraction.set_rsvp(rsvpinfo)
+
+@bot.event
+async def on_guild_scheduled_event_unsubscribe(event, user):
+    sbid = await supabaseinteraction.get_user_uuid(DiscID = user.id)
+    rsvpinfo = {
+        "userID": sbid,
+        "eventID": event.description,
+        "avail": False
+    }
+    await supabaseinteraction.set_rsvp(rsvpinfo)
 
 bot.load_extension("cogs.Slash")
 bot.run(BOT_TOKEN)
