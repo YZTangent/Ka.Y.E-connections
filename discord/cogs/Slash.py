@@ -17,49 +17,69 @@ class Slash(commands.Cog):
         return [x for x in ["a", "b", "c", "d", "e"] if string.lower() in x.lower()]
 
     @commands.slash_command(description="Test command")
-    async def test(ctx):
+    async def test(inter):
         embed = disnake.Embed(title="Working")
-        await ctx.response.send_message(embeds=[embed])
+        await inter.response.send_message(embeds=[embed])
 
     @commands.slash_command(description="Return your UID")
-    async def myid(ctx):
-        await ctx.response.send_message(str(ctx.author.id))
+    async def myid(inter):
+        await inter.response.send_message(str(inter.author.id))
 
     @commands.slash_command(description="Create an Event, specify date as DDMMYY, time in HHMM, and duration in hours")
-    async def createevent(ctx, activity: str, date: str, time: str, duration: int = 0):
+    async def createevent(inter, activity: str, date: str, time: str, duration: int = 0):
         if(len(date) != 6 or len(time) != 4):
-            await ctx.response.send_message("Invalid Date/Time!")
+            await inter.response.send_message("Invalid Date/Time!")
             return
         day = int(date[0:2])
         month = int(date[2:4])
         year = int(date[4:]) + 2000
         hour = int(time[0:2]) - 8
         minute = int(time[2:])
+        
         try:
-            ts = datetime(year, month, day, hour, minute).isoformat() 
+            scheduled = datetime(year, month, day, hour, minute)
+            ts = scheduled.isoformat() 
             event = {
                 "activity": activity,
                 "starttime": ts,
                 "duration": duration,
-                "discgrp": ctx.channel_id
+                "discgrp": inter.channel_id
             }
             await supabaseinteraction.send_event(event)
-            await ctx.response.send_message(str(ctx.author.id))
+            metadata = disnake.GuildScheduledEventMetadata()
+            metadata.location = "Somewhere"
+            await inter.guild.create_scheduled_event(
+                name = activity,
+                entity_type = disnake.GuildScheduledEventEntityType(3),
+                entity_metadata = metadata,
+                scheduled_start_time = scheduled,
+                scheduled_end_time = datetime(year, month, day, hour + 1, minute)
+            )
+            await inter.response.send_message(str(inter.author.id))
         except ValueError:
-            await ctx.response.send_message("Invalid Date/Time!")
+            await inter.response.send_message("Invalid Date/Time!")
+        # except:
+        #     await inter.response.send_message("Something went wrong...")
+            
 
         
 
     @commands.slash_command(description="Edit an event")
-    async def editevent(ctx, action: str, activty: str, x):
-        await ctx.response.send_message(str(ctx.author.id))
+    async def editevent(inter, action: str, activty: str, x):
+        await inter.response.send_message(str(inter.author.id))
+
+    @commands.slash_command(description="List all events")
+    async def listevent(inter):
+        for x in inter.guild.fetch_scheduled_events():
+            await inter.response.send_message(x.name)
+
 
     @commands.slash_command(description="Return your UID")
     async def autocomplete(
-        ctx,
+        inter,
         text: str = commands.Param(autocomplete=autocomplete_options)
     ):
-        await ctx.response.send_message(text)
+        await inter.response.send_message(text)
     
 def setup(bot):
     bot.add_cog(Slash(bot))
