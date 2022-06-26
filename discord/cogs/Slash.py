@@ -1,15 +1,23 @@
+import asyncio
 import disnake
 from disnake.ext import commands
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import sys
 sys.path.append('..')
 from connection import supabaseinteraction
+import pytz
 # from interactions import cog_ext, SlashContext
 
 class Slash(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    local_tz = pytz.timezone('Asia/Singapore')
+
+    def utc_to_local(utc_dt):
+        local_dt = utc_dt.replace(tzinfo=pytz.utc).astimezone(Slash.local_tz)
+        return Slash.local_tz.normalize(local_dt).strftime("%d/%m/%Y, %H%M")
 
     # autocompleteOptions = ["a", "b", "c", "d", "e"]
 
@@ -70,8 +78,11 @@ class Slash(commands.Cog):
 
     @commands.slash_command(description="List all events")
     async def listevent(inter):
-        for x in inter.guild.fetch_scheduled_events():
-            await inter.response.send_message(x.name)
+        x = map(
+            lambda x: x.name + " at \"" + x.entity_metadata.location + "\" on " + Slash.utc_to_local(x.scheduled_start_time) + "hrs. ",
+            await inter.guild.fetch_scheduled_events()
+        )
+        await inter.response.send_message('\n'.join(x))
 
 
     @commands.slash_command(description="Return your UID")
