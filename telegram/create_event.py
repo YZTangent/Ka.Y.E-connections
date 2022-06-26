@@ -70,12 +70,6 @@ def create_event():
             year, month, day = date.split("/")
             hour = ops[timezone[0]](int(time[0:2]), int(timezone[1]))
             minute = int(time[2:])
-        except Exception as e:
-            await update.message.reply_text(
-                print(e)
-            )
-            return STARTTIME
-        try:
             ts = datetime(int(year), int(month), int(day), hour, minute).isoformat()
             event_info["starttime"] = update.message.text
         except ValueError:
@@ -133,6 +127,7 @@ def create_event():
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
+
 
 if __name__ == "__main__":
     application = (

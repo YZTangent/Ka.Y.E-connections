@@ -12,7 +12,7 @@ from telegram.ext import (
     InvalidCallbackData,
 )
 from create_event import create_event
-from rsvp import send_rsvp, choose_rsvp
+from rsvp import send_rsvp, choose_rsvp, handle_rsvp
 
 # Enable logging
 logging.basicConfig(
@@ -112,12 +112,13 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("clear", clear))
-    application.add_handler(
-        CallbackQueryHandler(handle_invalid_button, pattern=InvalidCallbackData)
-    )
+    # application.add_handler(
+    #     CallbackQueryHandler(handle_invalid_button, pattern=InvalidCallbackData)
+    # )
     application.add_handler(choose_rsvp())
     application.add_handler(create_event())
     application.add_handler(send_rsvp())
+    application.add_handler(handle_rsvp())
 
     # Run the bot
     application.run_polling()

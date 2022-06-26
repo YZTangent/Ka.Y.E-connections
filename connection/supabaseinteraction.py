@@ -13,7 +13,11 @@ async def send_event(event: dict):
 
 
 async def get_user_rsvp(uuid):
-    return supabase.table("rsvp").select("eventID").eq("userID", uuid).execute().data
+    return supabase.table("RSVP").select("eventID").eq("userID", uuid).execute().data
+
+
+async def set_rsvp(rsvp_info):
+    supabase.table("RSVP").upsert(rsvp_info).execute()
 
 
 async def get_user_uuid(**kwargs):
