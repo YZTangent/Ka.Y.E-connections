@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 from supabase import create_client, Client
+import asyncio
 
 load_dotenv()
 SUPABASE_URL = os.getenv('SUPABASE_URL')
@@ -12,8 +13,16 @@ async def send_event(event: dict):
     supabase.table("event").insert(event).execute()
 
 
-async def get_user_rsvp(uuid):
+async def update_event(event: dict):
+    supabase.table("event").update(event).execute()
+
+
+async def get_rsvp_by_user(uuid):
     return supabase.table("RSVP").select("eventID").eq("userID", uuid).execute().data
+
+
+async def get_rsvp_by_event(eventID, avail):
+    return supabase.table("RSVP").select("userID").eq("eventID", eventID).eq("avail", avail).execute().data
 
 
 async def set_rsvp(rsvp_info):
@@ -29,7 +38,7 @@ async def get_user_uuid(**kwargs):
         if arg in ["DiscID", "TeleID"]:
             return supabase.table("Profile").select("id").eq(arg, kwargs[arg]).execute().data[0]['id']
 
-    #Trivial way
+    # Trivial way
     # if "TeleID" in kwargs and "DiscID" in kwargs:
     #     raise Exception("Provide only one of either Telegram ID or Discord ID!")
     # elif "TeleID" in kwargs:
@@ -61,6 +70,10 @@ async def get_discuser_events(DiscID):
     return get_user_events(get_user_uuid(DiscID=DiscID)).data
 
 if __name__ == "__main__":
-    print(get_user_uuid(DiscID=123))
-    print(supabase.table("event").select('starttime').execute())
-    print(type(supabase.table("event").insert({'activity': 'testinsert', 'starttime': '2022-06-23T12:14:33+00:00'}).execute()))
+    # print(get_user_uuid(DiscID=123))
+    # print(supabase.table("event").select('starttime').execute())
+    # print(type(supabase.table("event").insert({'activity': 'testinsert', 'starttime': '2022-06-23T12:14:33+00:00'}).execute()))
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    result = loop.run_until_complete(get_rsvp_by_event("c4750e3d-60a3-42d3-9426-816e29c2f261", False))
+    print(result)

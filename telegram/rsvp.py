@@ -13,8 +13,17 @@ from telegram.ext import (
 from cogs import private_check
 
 
-def build_rsvp_message(event_info) -> InlineKeyboardMarkup:
-    text = "please rsvp to event {}".format(event_info['activity'])
+async def build_rsvp_message(event_info) -> InlineKeyboardMarkup:
+    coming = await supa.get_rsvp_by_event(event_info['id'], True)
+    not_coming = await supa.get_rsvp_by_event(event_info['id'], False)
+    text = "please rsvp to event {}" \
+           "\nLocation: {}" \
+           "\nComing: {}" \
+           "\nNot Coming:{}"\
+        .format(event_info['activity'],
+                event_info['location'] if event_info['location'] else "TBC",
+                str(coming),
+                str(not_coming))
 
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("Yes, I'm coming!", callback_data=("rsvp", True, event_info))],
@@ -43,14 +52,14 @@ async def send_rsvp_group(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def load_rsvp_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
+    update.callback_query.
     _, event_info, user_id = query.data
     # if query.from_user.id == user_id:
     await query.answer()
     # Get the data from the callback_data.
     # append the number to the list
 
-    text, keyboard = build_rsvp_message(event_info)
-    print(query.from_user.id)
+    text, keyboard = await build_rsvp_message(event_info)
     await query.edit_message_text(
         text=text,
         reply_markup=keyboard,
@@ -69,11 +78,16 @@ async def handle_rsvp_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_id = await supa.get_user_uuid(TeleID=query.from_user.id)
     rsvp_info = {
         "userID": user_id,
-        "eventID":event_info['id'],
+        "eventID": event_info['id'],
         "avail": available,
     }
     await query.answer()
     await supa.set_rsvp(rsvp_info)
+    text, keyboard = await build_rsvp_message(event_info)
+    await query.edit_message_text(
+        text=text,
+        reply_markup=keyboard,
+    )
 
 
 def choose_rsvp():
