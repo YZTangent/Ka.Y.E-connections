@@ -1,4 +1,5 @@
 import asyncio
+from operator import truediv
 import disnake
 from disnake.ext import commands
 from typing import List
@@ -23,6 +24,9 @@ class Slash(commands.Cog):
 
     async def autocomplete_options(inter, string: str) -> List[str]:
         return [x for x in ["a", "b", "c", "d", "e"] if string.lower() in x.lower()]
+
+    async def autocomplete_choice(inter, string: str) -> List[str]:
+        return [x for x in ["Yes", "No"] if string.lower() in x.lower()]
 
     @commands.slash_command(description="Test command")
     async def test(inter):
@@ -66,11 +70,8 @@ class Slash(commands.Cog):
             await inter.response.send_message(str(inter.author.id))
         except ValueError:
             await inter.response.send_message("Invalid Date/Time!")
-        # except:
-        #     await inter.response.send_message("Something went wrong...")
-            
-
-        
+        except:
+            await inter.response.send_message("Something went wrong...")
 
     @commands.slash_command(description="Edit an event")
     async def editevent(inter, action: str, activty: str, x):

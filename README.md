@@ -15,3 +15,6 @@
 
 ### RSVP
 - [ ] RSVP
+
+## Resources
+- [Discord Documentation for OAuth2](https://discord.com/developers/docs/topics/oauth2)
