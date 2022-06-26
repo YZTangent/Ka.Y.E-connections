@@ -14,7 +14,10 @@
 - [ ] List
 
 ### RSVP
-- [ ] RSVP
+- [x] RSVP
+
+### Others
+- [ ] Synchronization on rsvp states and events across platforms
 
 ## Resources
 - [Discord Documentation for OAuth2](https://discord.com/developers/docs/topics/oauth2)
