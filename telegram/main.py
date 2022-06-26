@@ -3,7 +3,6 @@ import sys
 sys.path.append('.')
 from connection import supabaseinteraction as supa
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Chat
-import asyncio
 from typing import List, Tuple, cast
 from telegram.ext import (
     Application,
@@ -11,29 +10,15 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
     InvalidCallbackData,
-    ConversationHandler,
-    MessageHandler,
-    filters,
 )
+from create_event import create_event
+from rsvp import send_rsvp, choose_rsvp
 
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-
-
-"""
--------------------------------------------- Private or Group checker --------------------------------------------------
-"""
-def privcheck(privatefunc, groupfunc):
-    async def inner(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if update.message.chat.type == 'private':
-            await privatefunc(update, context)
-        else:
-            await groupfunc(update, context)
-    return inner
-
 
 """
 -------------------------------------------- Element builders ----------------------------------------------------------
@@ -45,21 +30,14 @@ def build_keyboard(current_list) -> InlineKeyboardMarkup:
     )
 
 
-def build_event_list(update: Update) -> InlineKeyboardMarkup:
-    # events = supa.get_user_event(update['from']['id']).data
-    events = supa.get_all_events().data
-    keyboard = InlineKeyboardMarkup.from_column(
-        [InlineKeyboardButton(i['activity'], callback_data=("events", i)) for i in events]
-    )
-    text = "Please select your event!"
-    return text, keyboard
+
 
 
 def build_rsvp_message(update: Update) -> InlineKeyboardMarkup:
     events = supa.get_event().data
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("Yes", callback_data=("rsvp", True))],
-        [InlineKeyboardButton("No", callback_data=("events", False))],
+        [InlineKeyboardButton("No", callback_data=("rsvp", False))],
     ])
 
 
@@ -67,13 +45,7 @@ def build_rsvp_message(update: Update) -> InlineKeyboardMarkup:
 -------------------------------------------- Handlers ------------------------------------------------------------------
 """
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Sends a message with 5 inline buttons attached."""
-    print(update)
-    if update.message.chat.type == 'private':
-        await update.message.reply_text("cringe")
-    else:
-        text, keyboard = build_event_list(update)
-        await update.message.reply_text(text, reply_markup=keyboard)
+    return
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -119,6 +91,14 @@ async def handle_invalid_button(update: Update, context: ContextTypes.DEFAULT_TY
     )
 
 
+async def handle_send_rsvp(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Informs the user that the button is no longer available."""
+    print(update['callback_query'])
+    await update.callback_query.answer()
+    await update.effective_message.edit_text(
+        "Sorry, I could not process this button click 😕 Please send /start to get a new keyboard."
+    )
+
 def main():
     """Run the bot."""
     # Create the Application and pass it the bot's token.
@@ -135,7 +115,9 @@ def main():
     application.add_handler(
         CallbackQueryHandler(handle_invalid_button, pattern=InvalidCallbackData)
     )
-    application.add_handler(CallbackQueryHandler(list_button))
+    application.add_handler(choose_rsvp())
+    application.add_handler(create_event())
+    application.add_handler(send_rsvp())
 
     # Run the bot
     application.run_polling()

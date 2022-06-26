@@ -12,7 +12,11 @@ async def send_event(event: dict):
     supabase.table("event").insert(event).execute()
 
 
-def get_user_uuid(**kwargs):
+async def get_user_rsvp(uuid):
+    return supabase.table("rsvp").select("eventID").eq("userID", uuid).execute().data
+
+
+async def get_user_uuid(**kwargs):
     # Given discord or telegram userID, returns the user uuid.
     # Only takes either TeleID or DiscID, and chooses discord ID over Telegram ID if both are given.
 
@@ -32,11 +36,11 @@ def get_user_uuid(**kwargs):
     #     raise Exception("Please provide a Telegram or Discord kwargs as argument!")
 
 
-def get_all_events():
-    return supabase.table("event").select("*").execute()
+async def get_all_events():
+    return supabase.table("event").select("*").execute().data
 
 
-def get_user_events(profileid):
+async def get_user_events(profileid):
     # for arg in kwargs:
     #     if arg == "ProfileID":
     #         return supabase.table("event").select("*").eq("creatorID", kwargs["ProfileID"]).execute().data
@@ -44,13 +48,15 @@ def get_user_events(profileid):
     #         return get_user_events(ProfileID=get_user_uuid(arg=kwargs[arg]))
     return supabase.table("event").select("*").eq("creatorID", profileid).execute().data
 
-def get_teleuser_events(TeleID):
-    return get_user_events(get_user_uuid(TeleID=TeleID))
+
+async def get_teleuser_events(TeleID):
+    return get_user_events(get_user_uuid(TeleID=TeleID)).data
 
 
-def get_discuser_events(DiscID):
-    return get_user_events(get_user_uuid(DiscID=DiscID))
+async def get_discuser_events(DiscID):
+    return get_user_events(get_user_uuid(DiscID=DiscID)).data
 
 if __name__ == "__main__":
     print(get_user_uuid(DiscID=123))
-    print(get_discuser_events(123))
+    print(supabase.table("event").select('starttime').execute())
+    print(type(supabase.table("event").insert({'activity': 'testinsert', 'starttime': '2022-06-23T12:14:33+00:00'}).execute()))
