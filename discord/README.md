@@ -1,5 +1,4 @@
-# This is cringe
-
+# Discord bot
 ## TO-DO
 - [ ] Literally everything lmFAO
     - [x] Bot has to talk to supabase somehow
