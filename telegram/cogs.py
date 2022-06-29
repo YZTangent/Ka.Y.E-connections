@@ -12,6 +12,7 @@ from telegram.ext import (
     InvalidCallbackData,
 )
 
+
 def private_check(private_func, group_func):
     async def inner(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if update.message.chat.type == 'private':
