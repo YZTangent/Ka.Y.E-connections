@@ -6,11 +6,14 @@ from telegram.ext import (
 )
 from create_event import create_event
 from rsvp import send_rsvp, choose_rsvp, handle_rsvp
-from basic import start, help_command
+from basic import start, help
 import logging
+from dotenv import load_dotenv
+import os
 import sys
 
 sys.path.append('.')
+load_dotenv()
 
 # Enable logging
 logging.basicConfig(
@@ -24,13 +27,14 @@ def main():
     # Create the Application and pass it the bot's token.
     application = (
         Application.builder()
-        .token("5357075423:AAFij_e9Y_KxGvHfpHiJ-2znH9Cuo4Lf-xg")
+        # .token('TELE_BOT_TOKEN') # Main bot
+        .token(os.getenv('TELE_BOT_TOKEN_TEST')) # Test bot
         .arbitrary_callback_data(True)
         .build()
     )
 
     application.add_handler(start())
-    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(help())
     application.add_handler(choose_rsvp())
     application.add_handler(create_event())
     application.add_handler(send_rsvp())

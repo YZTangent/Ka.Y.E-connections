@@ -8,6 +8,7 @@ from telegram.ext import (
     InvalidCallbackData,
 )
 from cogs import private_check
+import uuid
 import sys
 
 sys.path.append('.')
@@ -16,16 +17,30 @@ sys.path.append('.')
 async def start_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     name = update.message.from_user.full_name
+    await update.message.reply_text("Hi! Welcome to your trusty personal assistant and scheduler, Ka.Y.E!"
+                                    "\n Use /createevent to create a new event, or check out the bot menu to explore "
+                                    "all my functionalities!")
+    id = await supa.get_user_uuid(TeleID=user_id)
     await supa.signup({
+        "id": id if id else str(uuid.uuid4()),
         "TeleID": user_id,
         "username": name
     })
-    await update.message.reply_text("Hi! Welcome back to your trusty personal assistant and scheduler, Ka.Y.E!"
-                                    "Press start ")
 
 
 async def start_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    return
+    user_id = update.message.from_user.id
+    name = update.message.from_user.full_name
+    await update.message.reply_text("Hi! Welcome to your trusty personal assistant and scheduler, Ka.Y.E!"
+                                    "\n Head over to my DMs and use /createevent to create a new event, "
+                                    "or check out the bot menu to explore "
+                                    "all my functionalities!")
+    id = await supa.get_user_uuid(TeleID=user_id)
+    await supa.signup({
+        "id": id if id else str(uuid.uuid4()),
+        "TeleID": user_id,
+        "username": name
+    })
 
 
 def start():
@@ -35,9 +50,14 @@ def start():
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Displays info on how to use the bot."""
     await update.message.reply_text(
-        "Use /start to test this bot. Use /clear to clear the stored data so that you can see "
-        "what happens, if the button data is not available. "
+        "Welcome back to your trusty personal assistant and scheduler, Ka.Y.E!"
+        "Use /createevent in a DM with me to create an event, and send out your rsvp with /send_rsvp in your group!"
+        "Feel free to explore my menu to see all of my functionalities and their description :)"
     )
+
+
+def help():
+    return CommandHandler("help", help_command)
 
 
 async def handle_invalid_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

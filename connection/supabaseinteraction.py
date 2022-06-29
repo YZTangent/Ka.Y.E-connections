@@ -34,6 +34,8 @@ async def get_rsvp_by_event(eventID, avail):
 
 
 async def set_rsvp(rsvp_info):
+    rsvp_info['username'] = await get_name_by_uuid(rsvp_info['userID'])
+    rsvp_info['eventname'] = await get_name_by_uuid(rsvp_info['eventID'])
     supabase.table("RSVP").upsert(rsvp_info).execute()
 
 
