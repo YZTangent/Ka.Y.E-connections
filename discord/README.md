@@ -1,17 +1,17 @@
-# This is cringe
+#Discord Bot interface for Ka.Y.E
 
 ## TO-DO
-- [ ] Literally everything lmFAO
-    - [x] Bot has to talk to supabase somehow
-      - [x] Instantiate Supabase Client
-      - [x] Send row entry to Supabase every Startup
-    - [ ] Need tables on supabase to put stuff onto
-      - [ ] need supabase to automatically create a row for each existing user
-      - [ ] need elements on react app to interact with these tables 
-    - [ ] Google Calendar Integration
-    - [ ] Graceful Shutdown
-      - [ ] Command Shutdown
-    - [ ] Make command to have server registered with webapp
+- [x] Bot connection with Supabase Client
+  - [x] Instantiate Supabase Client
+  - [x] Send row entry to Supabase logs every Startup
+  - [x] Combined Supabase connection with telegram bot
+- [ ] Need tables on supabase to put stuff onto
+  - [ ] need supabase to automatically create a row for each existing user
+  - [ ] need elements on react app to interact with these tables 
+- [ ] Google Calendar Integration
+- [ ] Graceful Shutdown
+  - [ ] Command Shutdown
+- [ ] Make command to have server registered with webapp
 
 ## Quick Access
 - [Disnakes Documentation](https://docs.disnake.dev/en/latest/index.html)
