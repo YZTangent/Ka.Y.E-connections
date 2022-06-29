@@ -24,7 +24,8 @@ async def build_rsvp_message(event_info) -> InlineKeyboardMarkup:
              "\n" \
         .format(event_info['activity'],
                 "\n" + event_info['description'] + "\n" if event_info['description'] else "",
-                "\n" + "*Date:*" + event_info['starttime'][0:9] + "\n" + "\n*Time:* " + event_info['starttime'][0:9]
+                "\n" + "*Date:*" + event_info['starttime'][0:10].replace("-", "\/") + "\n" + "\n*Time:* "
+                + event_info['starttime'][11:].replace("-", " UTC\-").replace("+", " UTC\+")
                     if event_info['starttime'] else "\n*Time:* TBC",
                 event_info['location'] if event_info['location'] else "TBC")
 
