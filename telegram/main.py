@@ -27,8 +27,8 @@ def main():
     # Create the Application and pass it the bot's token.
     application = (
         Application.builder()
-        # .token('TELE_BOT_TOKEN') # Main bot
-        .token(os.getenv('TELE_BOT_TOKEN_TEST')) # Test bot
+        .token('TELE_BOT_TOKEN') # Main bot
+        # .token(os.getenv('TELE_BOT_TOKEN_TEST')) # Test bot
         .arbitrary_callback_data(True)
         .build()
     )
