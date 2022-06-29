@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from .exceptions import UserNotRegisteredError
 import os
 import asyncio
 
@@ -30,12 +31,11 @@ async def get_rsvp_by_user(uuid):
 
 
 async def get_rsvp_by_event(eventID, avail):
-    return supabase.table("RSVP").select("userID").eq("eventID", eventID).eq("avail", avail).execute().data
+    return supabase.table("RSVP").select("*").eq("eventID", eventID).eq("avail", avail).execute().data
 
 
 async def set_rsvp(rsvp_info):
     rsvp_info['username'] = await get_name_by_uuid(rsvp_info['userID'])
-    rsvp_info['eventname'] = await get_name_by_uuid(rsvp_info['eventID'])
     supabase.table("RSVP").upsert(rsvp_info).execute()
 
 
@@ -46,7 +46,10 @@ async def get_user_uuid(**kwargs):
     # Pythonic way
     for arg in kwargs:
         if arg in ["DiscID", "TeleID"]:
-            return supabase.table("Profile").select("id").eq(arg, kwargs[arg]).execute().data[0]['id']
+            try:
+                return supabase.table("Profile").select("id").eq(arg, kwargs[arg]).execute().data[0]['id']
+            except IndexError as e:
+                raise UserNotRegisteredError
 
     # Trivial way
     # if "TeleID" in kwargs and "DiscID" in kwargs:
@@ -60,7 +63,10 @@ async def get_user_uuid(**kwargs):
 
 
 async def get_name_by_uuid(uuid):
-    return supabase.table("Profile").select("username").eq("id", uuid).execute().data
+    try:
+        return supabase.table("Profile").select("username").eq("id", uuid).execute().data[0]['username']
+    except IndexError as e:
+        raise UserNotRegisteredError
 
 
 async def get_all_events():
