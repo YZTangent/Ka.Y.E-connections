@@ -1,8 +1,6 @@
-import sys
-sys.path.append('.')
 from connection import supabaseinteraction as supa
 from datetime import datetime
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -13,6 +11,9 @@ from telegram.ext import (
 )
 from cogs import private_check
 import operator
+import sys
+
+sys.path.append('.')
 ops = { "+": operator.add, "-": operator.sub }
 
 
@@ -37,10 +38,7 @@ def create_event():
     async def activity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Stores the activity description and asks for a location."""
         event_info["activity"] = update.message.text
-        await update.message.reply_text(
-            "location",
-            reply_markup=ReplyKeyboardRemove(),
-        )
+        await update.message.reply_text("location")
 
         return LOCATION
 
@@ -104,7 +102,7 @@ def create_event():
         """Cancels and ends the conversation."""
         user = update.message.from_user
         await update.message.reply_text(
-            "cancelled", reply_markup=ReplyKeyboardRemove()
+            "cancelled"
         )
 
         return ConversationHandler.END
