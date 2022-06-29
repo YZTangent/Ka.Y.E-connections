@@ -10,9 +10,9 @@ from basic import start, help
 import logging
 from dotenv import load_dotenv
 import os
-import sys
-
-sys.path.append('.')
+# import sys
+#
+# sys.path.append('.')
 load_dotenv()
 
 # Enable logging

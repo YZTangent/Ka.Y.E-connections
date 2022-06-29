@@ -128,7 +128,7 @@ def create_event():
             "How long will this event be in hours? Just an approximation will do if it's not confirmed yet :)"
         )
 
-        return STARTTIME
+        return DURATION
 
     async def duration(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         event_info["duration"] = update.message.text

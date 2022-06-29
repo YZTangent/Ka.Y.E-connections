@@ -1,4 +1,5 @@
 from connection import supabaseinteraction as supa
+from connection.exceptions import UserNotRegisteredError
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -20,12 +21,20 @@ async def start_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_text("Hi! Welcome to your trusty personal assistant and scheduler, Ka.Y.E!"
                                     "\n Use /createevent to create a new event, or check out the bot menu to explore "
                                     "all my functionalities!")
-    id = await supa.get_user_uuid(TeleID=user_id)
-    await supa.signup({
-        "id": id if id else str(uuid.uuid4()),
-        "TeleID": user_id,
-        "username": name
-    })
+    try:
+        id = await supa.get_user_uuid(TeleID=user_id)
+        await supa.signup({
+            "id": id,
+            "TeleID": user_id,
+            "username": name
+        })
+    except UserNotRegisteredError as e:
+        await supa.signup({
+            "id": str(uuid.uuid4()),
+            "TeleID": user_id,
+            "username": name,
+            "created_externally": True
+        })
 
 
 async def start_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

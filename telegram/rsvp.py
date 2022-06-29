@@ -1,5 +1,4 @@
 import telegram.constants
-
 from connection import supabaseinteraction as supa
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -8,6 +7,7 @@ from telegram.ext import (
     ContextTypes,
 )
 from cogs import private_check
+from connection.exceptions import UserNotRegisteredError
 import sys
 
 sys.path.append('.')
@@ -32,8 +32,8 @@ async def build_rsvp_message(event_info) -> InlineKeyboardMarkup:
              "\n{}" \
              "\n*Not Coming:* " \
              "\n{}" \
-        .format("\n".join([(await supa.get_name_by_uuid(i['userID']))[0]['username'] for i in coming]),
-                "\n".join([(await supa.get_name_by_uuid(i['userID']))[0]['username'] for i in not_coming]))
+        .format("\n".join([i["username"] for i in coming]) + "\n" if coming else "",
+                "\n".join([i["username"] for i in not_coming]))
 
     text = header + coming
     keyboard = InlineKeyboardMarkup([
@@ -51,12 +51,21 @@ async def send_rsvp_private(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 async def send_rsvp_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
-    events = await (await supa.get_teleuser_events(user_id))
-    keyboard = InlineKeyboardMarkup.from_column(
-        [InlineKeyboardButton(i['activity'], callback_data=("events", i, user_id)) for i in events]
-    )
-    text = "Please select your event\!"
-    await update.message.reply_text(text, parse_mode=telegram.constants.ParseMode.MARKDOWN_V2, reply_markup=keyboard)
+    try:
+        events = await (await supa.get_teleuser_events(user_id))
+        keyboard = InlineKeyboardMarkup.from_column(
+            [InlineKeyboardButton(i['activity'], callback_data=("events", i, user_id)) for i in events]
+        )
+        text = "Please select your event\!"
+        await update.message.reply_text(
+            text,
+            parse_mode=telegram.constants.ParseMode.MARKDOWN_V2,
+            reply_markup=keyboard
+        )
+    except UserNotRegisteredError as e:
+        await update.message.reply_text(
+            "Please register with the bot first with /start!"
+        )
 
 
 async def load_rsvp_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -90,6 +99,7 @@ async def handle_rsvp_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         "userID": user_id,
         "eventID": event_info['id'],
         "avail": available,
+        "eventname": event_info["activity"]
     }
     await query.answer()
     await supa.set_rsvp(rsvp_info)
