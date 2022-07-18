@@ -27,7 +27,7 @@ async def start_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "id": str(uuid.uuid4()),
             "TeleID": user_id,
             "username": name,
-            "created_externally": True
+            "guest_user": True
         })
 
 

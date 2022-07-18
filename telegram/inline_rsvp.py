@@ -5,15 +5,11 @@ from telegram import (
     InlineQueryResultArticle,
     InputTextMessageContent,
     Update,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
 )
 from telegram.ext import (
     InlineQueryHandler,
-    CommandHandler,
     ContextTypes,
 )
-import re
 from connection.exceptions import UserNotRegisteredError
 from rsvp import build_rsvp_message
 
@@ -27,7 +23,7 @@ async def load_inline_rsvp(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if query == "":
             return
 
-        events = await (await supa.get_teleuser_events(user_id))
+        events = await supa.get_teleuser_events(user_id)
         results = []
         for i in events:
             text, keyboard = await build_rsvp_message(i)
@@ -45,7 +41,7 @@ async def load_inline_rsvp(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         await update.inline_query.answer(results)
     except UserNotRegisteredError as e:
-        await update.message.reply_text(
+        await update.effective_user.send_message(
             "Please register with the bot first with /start!"
         )
 

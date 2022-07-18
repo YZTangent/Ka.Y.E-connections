@@ -16,6 +16,7 @@ import sys
 sys.path.append('.')
 ops = {"+": operator.add, "-": operator.sub}
 
+
 def create_event():
     ACTIVITY, DESCRIPTION, LOCATION, STARTTIME, DURATION = range(5)
     event_info = {}
