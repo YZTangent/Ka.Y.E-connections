@@ -1,5 +1,9 @@
 # Ka.Y.E-connections
 
+## Known issues
+
+- Autocomplete for slash commands do not show up sometimes
+
 ## Deliverable
 
 - [ ] Make Telegram and Discord have the same commands
