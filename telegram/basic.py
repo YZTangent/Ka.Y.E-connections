@@ -1,18 +1,12 @@
 from connection import supabaseinteraction as supa
 from connection.exceptions import UserNotRegisteredError
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import (
-    Application,
-    CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
-    InvalidCallbackData,
 )
 from cogs import private_check
 import uuid
-import sys
-
-sys.path.append('.')
 
 
 async def start_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -50,6 +44,14 @@ async def start_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         "TeleID": user_id,
         "username": name
     })
+
+
+async def get_id_handler(update, context):
+    await update.message.reply_text(update.message.from_user.id)
+
+
+def get_id():
+    return CommandHandler("get_id", get_id_handler)
 
 
 def start():

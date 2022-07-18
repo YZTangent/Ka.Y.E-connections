@@ -1,18 +1,12 @@
-from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    ContextTypes,
-)
+from telegram.ext import Application
 from create_event import create_event
 from rsvp import send_rsvp, choose_rsvp, handle_rsvp
-from basic import start, help
+from inline_rsvp import inline_rsvp
+from basic import start, help, get_id
 import logging
 from dotenv import load_dotenv
 import os
-# import sys
-#
-# sys.path.append('.')
+
 load_dotenv()
 
 # Enable logging
@@ -27,18 +21,20 @@ def main():
     # Create the Application and pass it the bot's token.
     application = (
         Application.builder()
-        .token(os.getenv('TELE_BOT_TOKEN')) # Main bot
-        # .token(os.getenv('TELE_BOT_TOKEN_TEST')) # Test bot
-        .arbitrary_callback_data(True)
-        .build()
+            # .token(os.getenv('TELE_BOT_TOKEN'))  # Main bot
+            .token(os.getenv('TELE_BOT_TOKEN_TEST')) # Test bot
+            .arbitrary_callback_data(True)
+            .build()
     )
 
     application.add_handler(start())
     application.add_handler(help())
+    application.add_handler(get_id())
     application.add_handler(choose_rsvp())
     application.add_handler(create_event())
     application.add_handler(send_rsvp())
     application.add_handler(handle_rsvp())
+    application.add_handler(inline_rsvp())
     # application.add_handler(
     #     CallbackQueryHandler(handle_invalid_button, pattern=InvalidCallbackData)
     # )

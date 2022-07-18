@@ -1,8 +1,9 @@
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from .exceptions import UserNotRegisteredError
+from connection.exceptions import UserNotRegisteredError
 import os
 import asyncio
+
 
 load_dotenv()
 SUPABASE_URL = os.getenv('SUPABASE_URL')
@@ -84,6 +85,21 @@ async def get_teleuser_events(TeleID):
 async def get_discuser_events(DiscID):
     return get_user_events(await get_user_uuid(DiscID=DiscID))
 
+# async def register_user(email):
+#     return supabase.auth.sign_up(
+#         email=email
+#     )
+
+
+# async def check_otp(email, otp):
+#     return supabase.auth.verify_otp (
+#         {
+#             "email": email,
+#             "token": otp,
+#         }
+#     )
+
+
 if __name__ == "__main__":
     # print(get_user_uuid(DiscID=123))
     # get_rsvp_by_event("c4750e3d-60a3-42d3-9426-816e29c2f261", False)
@@ -91,5 +107,5 @@ if __name__ == "__main__":
     # print(type(supabase.table("event").insert({'activity': 'testinsert', 'starttime': '2022-06-23T12:14:33+00:00'}).execute()))
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    result = loop.run_until_complete(get_name_by_uuid(''))
+    result = loop.run_until_complete(register_user("kayye122@gmail.com"))
     print(result)
