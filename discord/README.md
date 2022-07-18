@@ -60,5 +60,24 @@
   - message.author.guild_permissions.administrator
   - 
 
-# Bot Startup Routine
+## Bot Startup Routine
 - [ ] Pull Birthdays
+
+
+
+## Issues
+- [ ] How do you send a message everyday
+  - schedule module?
+  - Ideas
+    - Created Job
+    - Store jobs, identified by group_id in a table
+    - Each task has a name and id
+    - unique identifier by group and name
+  - 
+- /remindme timeFromNow/freq what
+  - birthdays and event remidners will be a subset of this
+
+
+## Derivative ideas
+- Daily/Weekly reminder
+  - Option to ask for accoutn takeover
