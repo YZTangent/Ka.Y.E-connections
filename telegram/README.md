@@ -1,4 +1,3 @@
-# This is cringe
+#Telegram Bot interface for Ka.Y.E
 
-## TO-DO
-- Literally everything lmFAO
+## Introduction

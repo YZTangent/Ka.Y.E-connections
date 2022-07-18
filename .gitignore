@@ -1,2 +1,4 @@
 .env
 .idea
+connection/__pycache__
+telegram/__pycache__

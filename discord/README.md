@@ -1,5 +1,6 @@
 # Ka.Y.E Discord bot
 
+# Discord bot
 ## TO-DO
 - [x] Bot has to talk to supabase somehow
   - [x] Instantiate Supabase Client
@@ -39,6 +40,7 @@
 |---       | ----------- | ----------- |  ---              |
 | GuildID1 | Command 1   | RoleID 1    | Instructions 1    |
 | GuildID1 | Command 2   | RoleID 2    | Instructions 2    |
+<<<<<<< HEAD
 
 # Milestone 3
 - [ ] A command for users to have the bot send them a list of events they have RSVP’d to for purposes of keeping track. The list of events will include details on the event, such as the starting time as well as location if any.
@@ -81,3 +83,5 @@
 ## Derivative ideas
 - Daily/Weekly reminder
   - Option to ask for accoutn takeover
+=======
+>>>>>>> 2547f46d3d2ed3e596c4301bee68bf6920bb12bd
