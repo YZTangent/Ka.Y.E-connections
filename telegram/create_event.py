@@ -16,6 +16,7 @@ import sys
 sys.path.append('.')
 ops = {"+": operator.add, "-": operator.sub}
 
+
 def create_event():
     ACTIVITY, DESCRIPTION, LOCATION, STARTTIME, DURATION = range(5)
     event_info = {}
@@ -131,16 +132,24 @@ def create_event():
         return DURATION
 
     async def duration(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-        event_info["duration"] = update.message.text
-        user_id = update.message.from_user.id
-        event_info["creatorID"] = await supa.get_user_uuid(TeleID=user_id)
-        await supa.send_event(event_info)
-        await update.message.reply_text(
-            "Your event has been created! You now can send RSVPs for this event by adding me to your group and then "
-            "sending the /send_rsvp command."
-        )
+        dur = update.message.text
+        if isinstance(dur, int) and dur > 0:
+            event_info["duration"] = update.message.text
+            user_id = update.message.from_user.id
+            event_info["creatorID"] = await supa.get_user_uuid(TeleID=user_id)
+            await supa.send_event(event_info)
+            await update.message.reply_text(
+                "Your event has been created! You now can send RSVPs for this event by adding me to your group and then "
+                "sending the /send_rsvp command."
+            )
 
-        return ConversationHandler.END
+            return ConversationHandler.END
+        else:
+            await update.message.reply_text(
+                "Please insert a valid number of hours!"
+            )
+
+            return DURATION
 
     async def skip_duration(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         user_id = update.message.from_user.id

@@ -1,4 +1,4 @@
-import telegram.constants
+from telegram.constants import ParseMode
 from connection import supabaseinteraction as supa
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -6,14 +6,11 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
 )
-from cogs import private_check
+from cogs import private_check, escape_markdown
 from connection.exceptions import UserNotRegisteredError
-import sys
-
-sys.path.append('.')
 
 
-async def build_rsvp_message(event_info) -> InlineKeyboardMarkup:
+async def build_rsvp_message(event_info):
     coming = await supa.get_rsvp_by_event(event_info['id'], True)
     not_coming = await supa.get_rsvp_by_event(event_info['id'], False)
 
@@ -22,12 +19,12 @@ async def build_rsvp_message(event_info) -> InlineKeyboardMarkup:
              "\n {}" \
              "\n*Location:* {}" \
              "\n" \
-        .format(event_info['activity'],
-                "\n" + event_info['description'] + "\n" if event_info['description'] else "",
-                "\n" + "*Date:*" + event_info['starttime'][0:10].replace("-", "\/") + "\n" + "\n*Time:* "
+        .format(escape_markdown(event_info['activity']),
+                "\n" + escape_markdown(event_info['description']) if event_info['description'] else "",
+                "\n" + "*Date:* " + event_info['starttime'][0:10].replace("-", "\/") + "\n" + "\n*Time:* "
                 + event_info['starttime'][11:].replace("-", " UTC\-").replace("+", " UTC\+")
                     if event_info['starttime'] else "\n*Time:* TBC",
-                event_info['location'] if event_info['location'] else "TBC")
+                escape_markdown(event_info['location']) if event_info['location'] else "TBC")
 
     coming = "\n*Coming:* " \
              "\n{}" \
@@ -53,18 +50,18 @@ async def send_rsvp_private(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def send_rsvp_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     try:
-        events = await (await supa.get_teleuser_events(user_id))
+        events = await supa.get_teleuser_events(user_id)
         keyboard = InlineKeyboardMarkup.from_column(
             [InlineKeyboardButton(i['activity'], callback_data=("events", i, user_id)) for i in events]
         )
         text = "Please select your event\!"
         await update.message.reply_text(
             text,
-            parse_mode=telegram.constants.ParseMode.MARKDOWN_V2,
+            parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=keyboard
         )
     except UserNotRegisteredError as e:
-        await update.message.reply_text(
+        await update.effective_user.send_message(
             "Please register with the bot first with /start!"
         )
 
@@ -73,22 +70,21 @@ async def load_rsvp_message(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     _, event_info, user_id = query.data
-    # if query.from_user.id == user_id:
-    await query.answer()
-    # Get the data from the callback_data.
-    # append the number to the list
+    if query.from_user.id == user_id:
+        await query.answer()
 
-    text, keyboard = await build_rsvp_message(event_info)
-    await query.edit_message_text(
-        text=text,
-        parse_mode=telegram.constants.ParseMode.MARKDOWN_V2,
-        reply_markup=keyboard,
-    )
-    # else:
-    #     await query.answer()
-    #     await context.bot.sendMessage()
+        text, keyboard = await build_rsvp_message(event_info)
+        await query.edit_message_text(
+            text=text,
+            parse_mode=ParseMode.MARKDOWN_V2,
+            reply_markup=keyboard,
+        )
+    else:
+        await query.answer()
+        await update.effective_user.send_message(
+            "Only the user who is sending the RSVP can choose the event!"
+        )
 
-    # we can delete the data stored for the query, because we've replaced the buttons
     context.drop_callback_data(query)
 
 
@@ -107,7 +103,7 @@ async def handle_rsvp_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     text, keyboard = await build_rsvp_message(event_info)
     await query.edit_message_text(
         text=text,
-        parse_mode=telegram.constants.ParseMode.MARKDOWN_V2,
+        parse_mode=ParseMode.MARKDOWN_V2,
         reply_markup=keyboard,
     )
 

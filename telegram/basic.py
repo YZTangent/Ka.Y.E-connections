@@ -1,18 +1,14 @@
 from connection import supabaseinteraction as supa
-from connection.exceptions import UserNotRegisteredError
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from connection.exceptions import UserNotRegisteredError, InvalidDatetimeError
+from connection.helper import past_future_check, datetime_validation
+from datetime import datetime
+from telegram import Update
 from telegram.ext import (
-    Application,
-    CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
-    InvalidCallbackData,
 )
 from cogs import private_check
 import uuid
-import sys
-
-sys.path.append('.')
 
 
 async def start_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -33,7 +29,7 @@ async def start_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "id": str(uuid.uuid4()),
             "TeleID": user_id,
             "username": name,
-            "created_externally": True
+            "guest_user": True
         })
 
 
@@ -50,6 +46,14 @@ async def start_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         "TeleID": user_id,
         "username": name
     })
+
+
+async def get_id_handler(update, context):
+    await update.message.reply_text(update.message.from_user.id)
+
+
+def get_id():
+    return CommandHandler("get_id", get_id_handler)
 
 
 def start():
@@ -76,3 +80,39 @@ async def handle_invalid_button(update: Update, context: ContextTypes.DEFAULT_TY
         "Sorry, I could not process this button click 😕"
     )
 
+
+async def set_birthday_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.message.from_user.id
+    try:
+        bday = context.args[0].replace("/", "-")
+        year, month, day = bday.split("-")
+        if past_future_check(datetime_validation(int(year), int(month), int(day))) != "past":
+            await update.message.reply_text(
+                "Invalid Date!"
+            )
+            return
+    except IndexError:
+        await update.message.reply_text(
+            "Please provide a date!"
+        )
+    except InvalidDatetimeError:
+        await update.message.reply_text(
+            "Invalid Date!"
+        )
+    try:
+        id = await supa.get_user_uuid(TeleID=user_id)
+        await update.message.reply_text(
+            "Your birthday has been updated!"
+        )
+        await supa.update_birthday({
+            'id': id,
+            'bday': bday
+        })
+    except UserNotRegisteredError as e:
+        await update.effective_user.send_message(
+            "Please register with the bot first with /start!"
+        )
+
+
+def set_birthday():
+    return CommandHandler("set_birthday", set_birthday_command)
