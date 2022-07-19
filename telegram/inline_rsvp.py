@@ -19,26 +19,27 @@ async def load_inline_rsvp(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.inline_query.query
     user_id = update.inline_query.from_user.id
 
-    try:
-        if query == "":
-            return
+    print("new query")
 
+    try:
         events = await supa.get_teleuser_events(user_id)
         results = []
+
         for i in events:
-            text, keyboard = await build_rsvp_message(i)
-            results.append(
-                InlineQueryResultArticle(
-                    id=str(uuid4()),
-                    title=i['activity'],
-                    description=i['description'],
-                    input_message_content=InputTextMessageContent(
-                        message_text=text,
-                        parse_mode=ParseMode.MARKDOWN_V2
-                    ),
-                    reply_markup=keyboard
+            if i['activity'].startswith(query):
+                text, keyboard = await build_rsvp_message(i)
+                results.append(
+                    InlineQueryResultArticle(
+                        id=str(uuid4()),
+                        title=i['activity'],
+                        description=i['description'],
+                        input_message_content=InputTextMessageContent(
+                            message_text=text,
+                            parse_mode=ParseMode.MARKDOWN_V2
+                        ),
+                        reply_markup=keyboard
+                    )
                 )
-            )
         await update.inline_query.answer(results)
     except UserNotRegisteredError as e:
         await update.effective_user.send_message(

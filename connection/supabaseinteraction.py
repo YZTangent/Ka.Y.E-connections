@@ -15,7 +15,7 @@ async def signup(user_info):
     supabase.table("Profile").upsert(user_info).execute()
 
 
-async def signup(user_info):
+async def update_birthday(user_info):
     supabase.table("Profile").upsert(user_info).execute()
 
 
@@ -70,6 +70,15 @@ async def get_name_by_uuid(uuid):
         raise UserNotRegisteredError
 
 
+async def get_bday(**kwargs):
+    for arg in kwargs:
+        if arg in ["id", "DiscID", "TeleID"]:
+            try:
+                return supabase.table("Profile").select("bday").eq(arg, kwargs[arg]).execute().data[0]['bday']
+            except IndexError as e:
+                raise UserNotRegisteredError
+
+
 async def get_all_events():
     return supabase.table("event").select("*").execute().data
 
@@ -79,7 +88,7 @@ async def get_user_events(profileid):
 
 
 async def get_teleuser_events(TeleID):
-    return get_user_events(await get_user_uuid(TeleID=TeleID))
+    return await get_user_events(await get_user_uuid(TeleID=TeleID))
 
 
 async def get_discuser_events(DiscID):
@@ -107,5 +116,5 @@ if __name__ == "__main__":
     # print(type(supabase.table("event").insert({'activity': 'testinsert', 'starttime': '2022-06-23T12:14:33+00:00'}).execute()))
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    result = loop.run_until_complete(register_user("kayye122@gmail.com"))
+    result = loop.run_until_complete(get_bday(TeleID="1024208085"))
     print(result)

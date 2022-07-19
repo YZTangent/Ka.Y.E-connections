@@ -2,7 +2,7 @@ from telegram.ext import Application
 from create_event import create_event
 from rsvp import send_rsvp, choose_rsvp, handle_rsvp
 from inline_rsvp import inline_rsvp
-from basic import start, help, get_id
+from basic import start, help, get_id, set_birthday
 import logging
 from dotenv import load_dotenv
 import os
@@ -30,6 +30,7 @@ def main():
     application.add_handler(start())
     application.add_handler(help())
     application.add_handler(get_id())
+    application.add_handler(set_birthday())
     application.add_handler(choose_rsvp())
     application.add_handler(create_event())
     application.add_handler(send_rsvp())
