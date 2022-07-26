@@ -40,13 +40,16 @@
 |---       | ----------- | ----------- |  ---              |
 | GuildID1 | Command 1   | RoleID 1    | Instructions 1    |
 | GuildID1 | Command 2   | RoleID 2    | Instructions 2    |
-<<<<<<< HEAD
 
 # Milestone 3
 - [ ] A command for users to have the bot send them a list of events they have RSVP’d to for purposes of keeping track. The list of events will include details on the event, such as the starting time as well as location if any.
 - [ ] Inline bot capabilities such that the user can send invitations to events without having to add other users to the server. 
 - [ ] The ability for the bot to share events across multiple servers. 
 - [ ] The ability to bind words as triggers for a response, either text or an image, from the bot
+  - /bind word url
+  - inserts a row onto database table with guild_id, word, and url
+  - bot loads dictionatry of guild_id to dictionary of words to lists of urls on startup/update
+  - 
 - [ ] Send messages to remind users of events at certain time intervals before the start of the event eg 1 day, 1 hour.
   - Check event table every day and pull events that match the guild
   - Send message to server if event is 1 day later
@@ -83,5 +86,3 @@
 ## Derivative ideas
 - Daily/Weekly reminder
   - Option to ask for accoutn takeover
-=======
->>>>>>> 2547f46d3d2ed3e596c4301bee68bf6920bb12bd

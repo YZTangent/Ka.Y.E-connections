@@ -21,10 +21,8 @@ class Sched(commands.Cog):
     @commands.slash_command(description="Test command")
     async def remind(
         inter,
-        when: int,
-        freq: int,
-        unit: str = '',
-        what: str = ''
+        message: str = "",
+        freq: int = 10
     ):
         class Confirm(disnake.ui.View):
             def __init__(self):
@@ -35,7 +33,7 @@ class Sched(commands.Cog):
             # When the confirm button is pressed, set the inner value to `True` and
             # stop the View from listening to more input.
             # We also send the user an ephemeral message that we're confirming their choice.
-            @disnake.ui.button(label="Stop", style=disnake.ButtonStyle.green)
+            @disnake.ui.button(label="Stop", style=disnake.ButtonStyle.red)
             async def confirm(self, button: disnake.ui.Button, interaction: disnake.MessageInteraction):
                 if interaction.author == self.author:
                     await interaction.response.send_message("Stopping reminders", ephemeral=True)
@@ -54,11 +52,11 @@ class Sched(commands.Cog):
 
         # the returned task object
         # need to object.start() for it to run
-        @tasks.loop(seconds=freq)
+        @tasks.loop(minutes=freq)
         async def theTask():
             targetChannel = inter.channel
             author = inter.author
-            response = await inter.followup.send("{} second loop".format(freq))
+            response = await inter.followup.send("{}\nThis reminder will be sent every {} minute(s)".format(message, freq))
 
         # how to get a reaction on the message to cancel the task?
         # need to keep the task somewhere
@@ -68,7 +66,7 @@ class Sched(commands.Cog):
 
         theTask.start() 
         view = Confirm()
-        await inter.send('i lost the game', view=view)
+        await inter.send('Reminder set: {}'.format(message), view=view)
         await view.wait()
         if view.value is None:
             print("Timed out...")
